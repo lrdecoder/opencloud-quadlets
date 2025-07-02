@@ -1,0 +1,17 @@
+[Unit]
+Description=OpenCloud Tika container
+After=network-online.target
+PartOf=opencloud.target
+
+[Container]
+Image=docker.io/apache/tika:latest-full
+AutoUpdate=registry
+Timezone=local
+Network=opencloud.network
+NetworkAlias=tika
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=opencloud.target

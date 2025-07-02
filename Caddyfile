@@ -1,0 +1,11 @@
+opencloud.mydomain.com {
+	reverse_proxy opencloud:9200
+}
+
+wopiserver.mydomain.com {
+	reverse_proxy wopiserver:9300
+}
+
+collabora.mydomain.com {
+	reverse_proxy collabora:9980
+}

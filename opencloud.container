@@ -1,0 +1,109 @@
+[Unit]
+Description=OpenCloud container
+After=network-online.target
+PartOf=opencloud.target
+Requires=clamav.service
+After=clamav.service
+
+[Container]
+Image=docker.io/opencloudeu/opencloud-rolling:3
+AutoUpdate=registry
+Timezone=local
+User=0
+Network=opencloud.network
+NetworkAlias=opencloud
+
+Entrypoint=["/bin/sh"]
+Exec=-c 'opencloud init || true; opencloud server'
+
+# enable services that are not started automatically
+Environment=OC_ADD_RUN_SERVICES=notifications,antivirus
+Environment=OC_URL=https://opencloud.mydomain.com
+Environment=OC_LOG_LEVEL=warn
+Environment=OC_LOG_COLOR=true
+Environment=OC_LOG_PRETTY=true
+# do not use SSL between reverse proxy and OpenCloud
+Environment=PROXY_TLS=false
+# make the REVA gateway accessible to the app drivers
+Environment=GATEWAY_GRPC_ADDR=0.0.0.0:9142
+# INSECURE: needed if OpenCloud / Reverse proxy is using self generated certificates
+Environment=OC_INSECURE=false
+# basic auth (not recommended, but needed for eg. WebDav clients that do not support OpenID Connect)
+Environment=PROXY_ENABLE_BASIC_AUTH=false
+# admin user password (this overrides the admin password from the configuration file)
+Environment=IDM_ADMIN_PASSWORD=--REDACTED--
+# demo users
+Environment=IDM_CREATE_DEMO_USERS=false
+# email server
+Environment=NOTIFICATIONS_SMTP_HOST=--REDACTED--
+Environment=NOTIFICATIONS_SMTP_PORT=--REDACTED--
+Environment=NOTIFICATIONS_SMTP_SENDER=--REDACTED--
+Environment=NOTIFICATIONS_SMTP_USERNAME=--REDACTED--
+Environment=NOTIFICATIONS_SMTP_PASSWORD=--REDACTED--
+Environment=NOTIFICATIONS_SMTP_INSECURE=--REDACTED--
+Environment=NOTIFICATIONS_SMTP_AUTHENTICATION=--REDACTED--
+Environment=NOTIFICATIONS_SMTP_ENCRYPTION=--REDACTED--
+Environment=FRONTEND_ARCHIVER_MAX_SIZE=10000000000
+# make the registry available to the app provider containers
+Environment=MICRO_REGISTRY_ADDRESS=127.0.0.1:9233
+Environment=NATS_NATS_HOST=0.0.0.0
+Environment=NATS_NATS_PORT=9233
+Environment=PROXY_CSP_CONFIG_FILE_LOCATION=/etc/opencloud/csp.yaml
+# these three vars are needed to the csp config file to include the web office apps and the importer
+Environment=COLLABORA_DOMAIN=collabora.mydomain.com
+#Environment=ONLYOFFICE_DOMAIN=onlyoffice.mydomain.com
+#Environment=COMPANION_DOMAIN=companion.mydomain.com
+# enable to allow using the banned passwords list
+Environment=OC_PASSWORD_POLICY_BANNED_PASSWORDS_LIST=banned-password-list.txt
+
+Volume=%h/opencloud/config:/etc/opencloud:z
+Volume=%h/opencloud/data:/var/lib/opencloud:Z
+
+#----------------
+# from clamav.yml
+#----------------
+Environment=ANTIVIRUS_SCANNER_TYPE=clamav
+Environment=ANTIVIRUS_CLAMAV_SOCKET=/var/run/clamav/clamd.sock
+Environment=ANTIVIRUS_MAX_SCAN_SIZE_MODE=partial
+Environment=ANTIVIRUS_MAX_SCAN_SIZE=100MB
+# configure the antivirus service
+Environment=POSTPROCESSING_STEPS=virusscan
+# PROXY_TLS is set to "false", the download url has no https
+Environment=STORAGE_USERS_DATA_GATEWAY_URL=http://opencloud:9200/data
+
+Volume=%h/opencloud/clamav-socket:/var/run/clamav:z
+
+#-------------------
+# from collabora.yml
+#-------------------
+# make collabora the secure view app
+Environment=FRONTEND_APP_HANDLER_SECURE_VIEW_APP_ADDR=eu.opencloud.api.collaboration.CollaboraOnline
+Environment=GRAPH_AVAILABLE_ROLES=b1e2218d-eef8-4d4c-b82d-0f1a1b48f3b5,a8d5fe5e-96e3-418d-825b-534dbdf22b99,fb6c3e19-e378-47e5-b277-9732f9de6e21,58c63c02-1d89-4572-916a-870abc5a1b7d,2d00ce52-1fc2-4dbc-8b95-a73b73395f5a,1c996275-f1c9-4e71-abdf-a42f6495e960,312c0871-5ef7-4b3a-85b6-0e4074c64049,aa97fe03-7980-45ac-9e50-b325749fd7e6
+
+#----------------------
+# from decomposeds3.yml
+#----------------------
+# activate decomposeds3 storage driver
+Environment=STORAGE_USERS_DRIVER=decomposeds3
+# keep system data on opencloud storage since this are only small files atm
+Environment=STORAGE_SYSTEM_DRIVER=decomposed  
+# decomposeds3 specific settings
+Environment=STORAGE_USERS_DECOMPOSEDS3_ENDPOINT=http://s3proxy:8080
+Environment=STORAGE_USERS_DECOMPOSEDS3_REGION=default
+Environment=STORAGE_USERS_DECOMPOSEDS3_ACCESS_KEY=--REDACTED--
+Environment=STORAGE_USERS_DECOMPOSEDS3_SECRET_KEY=--REDACTED--
+Environment=STORAGE_USERS_DECOMPOSEDS3_BUCKET=--REDACTED--
+
+#--------------
+# from tika.yml
+#--------------
+# fulltext search
+Environment=SEARCH_EXTRACTOR_TYPE=tika
+Environment=SEARCH_EXTRACTOR_TIKA_TIKA_URL=http://tika:9998
+Environment=FRONTEND_FULL_TEXT_SEARCH_ENABLED=true
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=opencloud.target

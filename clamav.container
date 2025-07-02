@@ -1,0 +1,24 @@
+[Unit]
+Description=OpenCloud Clamav container
+After=network-online.target
+PartOf=opencloud.target
+
+[Container]
+Image=docker.io/clamav/clamav-debian:1.4
+AutoUpdate=registry
+Timezone=local
+User=0:0
+UserNS=keep-id:uid=1000,gid=1000
+Network=opencloud.network
+NetworkAlias=clamav
+Volume=%h/opencloud/clamav-socket:/tmp:z
+Volume=%h/opencloud/clamav-db:/var/lib/clamav:Z
+HealthCmd=["clamdcheck.sh", "0s", "0s", "6m0s", "0s"]
+HealthStartPeriod=1m
+Notify=healthy
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=opencloud.target

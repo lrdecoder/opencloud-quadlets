@@ -1,0 +1,9 @@
+[Unit]
+Description=OpenCloud network
+After=network-online.target
+PartOf=opencloud.target
+
+[Network]
+
+[Install]
+WantedBy=opencloud.target
