@@ -1,0 +1,23 @@
+[Unit]
+Description=Caddy container
+After=network-online.target
+PartOf=opencloud.target
+
+[Container]
+Image=docker.io/caddy:2.10
+AutoUpdate=registry
+Volume=%h/caddy-data/:/data/:Z
+Volume=%h/Caddyfile:/etc/caddy/Caddyfile:ro,Z
+Network=opencloud.network
+PublishPort=80:80/tcp
+PublishPort=443:443/tcp
+PublishPort=443:443/udp
+ReadOnly=true
+Tmpfs=/config
+Timezone=local
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=opencloud.target
