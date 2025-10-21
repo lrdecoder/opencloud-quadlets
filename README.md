@@ -1,6 +1,6 @@
 ## Opencloud with podman quadlets
 
-An example setup for an opencloud installation using podman quadlets. I do not plan to keep it up to date, but put it here because it may be useful for somebody who wants a similar setup. The files are based on a setup that I have working on an ARM vps, but redacted and somewhat simplified. The setup is heavily inspired by the opencloud full docker deployment (https://github.com/opencloud-eu/opencloud/tree/main/deployments/examples/opencloud_full)
+An example setup for an opencloud installation using podman quadlets. I do not plan to keep it up to date, but put it here because it may be useful for somebody who wants a similar setup. The files are based on a setup that I have working on an ARM vps, but redacted and somewhat simplified. The setup is heavily inspired by the opencloud full docker deployment (https://github.com/opencloud-eu/opencloud/tree/main/devtools/deployments/opencloud_full)
 
 All containers are in the same podman network (opencloud.network) Unfortunately, source ip adresses are not preserved in the reverse proxy. Regarding this, see:
 
